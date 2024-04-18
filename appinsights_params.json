@@ -9,7 +9,7 @@
             "value": "Workspace-based"
         },
         "workspaceResourceId": {
-            "value": "/subscriptions/573cb139-5af5-4924-8206-2b0f793bfdfd/resourceGroups/defaultresourcegroup-eus2/providers/microsoft.operationalinsights/workspaces/defaultworkspace-573cb139-5af5-4924-8206-2b0f793bfdfd-eus2"
+            "value": "/subscriptions/533cb139-5af5-4924-8206-2b0f793bfdfd/resourceGroups/defaultresourcegroup-eus2/providers/microsoft.operationalinsights/workspaces/defaultworkspace-573cb139-5af5-4924-8206-2b0f793bfdfd-eus2"
         },
         "flowType":{
             "value": "Redfield"

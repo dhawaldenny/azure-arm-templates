@@ -18,7 +18,7 @@
         },
         "adminPassword": {
             "type": "secureString",
-            "defaultValue": "iTechOps@2024",
+            "defaultValue": "<PWD>",
             "metadata": {
                 "description": "sql server admin login password"
             }
