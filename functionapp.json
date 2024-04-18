@@ -1,0 +1,190 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "subscriptionId": {
+            "defaultValue": "Azure LPAS subscription",
+            "type": "string"
+        },
+        "name": {
+            "type": "string",
+            "defaultValue": "[format('funcApp-{0}', uniqueString(resourceGroup().id))]"
+        },
+        "location": {
+            "defaultValue": "[resourceGroup().location]",
+            "type": "string"
+        },
+        "use32BitWorkerProcess": {
+            "type": "bool",
+            "defaultValue": "true"
+        },
+        "ftpsState": {
+            "type": "string",
+            "defaultValue": "FtpsOnly"
+        },
+        "storageAccountName": {
+            "type": "string",
+            "defaultValue": "[format('store-{0}', uniqueString(resourceGroup().id))]"
+        },
+        "linuxFxVersion": {
+            "type": "string"
+        },
+        "environmentName": {
+            "type": "string",
+            "defaultValue": "[format('Env-{0}', uniqueString(resourceGroup().id))]"
+        },
+        "workspaceName": {
+            "type": "string",
+            "defaultValue": "[format('WorkSpace-{0}', uniqueString(resourceGroup().id))]"
+        },
+        "workspaceLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "managedEnvironmentId": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "hostingPlanName": "[format('hpn-{0}', resourceGroup().name)]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('name')]",
+            "type": "Microsoft.Web/sites",
+            "kind": "functionapp,linux,container,azurecontainerapps",
+            "location": "[parameters('location')]",
+            // "tags": {
+            //     "hidden-link: /app-insights-resource-id": "/subscriptions/573cb139-5af5-4924-8206-2b0f793bfdfd/resourceGroups/Dev-Lantern-2/providers/microsoft.insights/components/dev-app-insights"
+            // },
+            
+            "properties": {
+                "name": "[parameters('name')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~4"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "InstrumentationKey=49704bcd-aa88-494a-a8c8-07da7d8cc7e4;IngestionEndpoint=https://eastus2-3.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus2.livediagnostics.monitor.azure.com/"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccountName'),';AccountKey=',listKeys(resourceId('573cb139-5af5-4924-8206-2b0f793bfdfd','Dev-Lantern-2','Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+                        }
+                    ],
+                    "use32BitWorkerProcess": "[parameters('use32BitWorkerProcess')]",
+                    "ftpsState": "[parameters('ftpsState')]",
+                    "linuxFxVersion": "[parameters('linuxFxVersion')]"
+                },
+                "clientAffinityEnabled": false,
+                "virtualNetworkSubnetId": null,
+                "managedEnvironmentId": "[parameters('managedEnvironmentId')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.App/managedEnvironments/', parameters('environmentName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2022-03-01",
+            "name": "[variables('hostingPlanName')]",
+            "location": "[parameters('location')]",
+            "kind": "linux",
+            "properties": {
+              "reserved": true
+            },
+            "sku": {
+              "tier": "Standard",
+              "name": "S1"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2022-09-01",
+            "name": "[parameters('storageAccountName')]",
+            "location": "[parameters('location')]",
+            "kind": "StorageV2",
+            "sku": {
+              "name": "Standard_LRS"
+            }
+        },
+        {
+            "apiVersion": "2023-05-02-preview",
+            "name": "[parameters('environmentName')]",
+            "type": "Microsoft.App/managedEnvironments",
+            "location": "[parameters('location')]",
+            "tags": {},
+            "dependsOn": [
+                "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
+            ],
+            "properties": {
+                "appLogsConfiguration": {
+                    "destination": "log-analytics",
+                    "logAnalyticsConfiguration": {
+                        "customerId": "[reference(concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2020-08-01').customerId]",
+                        "sharedKey": "[listKeys(concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2020-08-01').primarySharedKey]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2020-08-01",
+            "name": "[parameters('workspaceName')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "location": "[parameters('workspaceLocation')]",
+            "dependsOn": [],
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                },
+                "retentionInDays": 30,
+                "workspaceCapping": {}
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "name": "DiagnosticSettingsTemplate",
+            "resourceGroup": "Dev-Lantern-2",
+            "subscriptionId": "[parameters('subscriptionId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "apiVersion": "2021-05-01-preview",
+                            "name": "[concat(parameters('storageAccountName'), '-sa-blob-logs')]",
+                            "type": "microsoft.insights/diagnosticSettings",
+                            "scope": "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'), '/blobServices/default')]",
+                            "dependsOn": [],
+                            "properties": {
+                                "workspaceId": null,
+                                "logs": [
+                                    {
+                                        "category": "StorageWrite",
+                                        "enabled": true
+                                    }
+                                ],
+                                "metrics": [
+                                    {
+                                        "category": "Transaction",
+                                        "enabled": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

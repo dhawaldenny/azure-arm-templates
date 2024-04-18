@@ -1,0 +1,22 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+         
+        "resourceGroup": {
+            "value": "aks-rg"
+        },
+        "location": {
+            "value": "useast2"
+        },
+        "bastionHostName": {
+            "value": "bastion-aks"
+        },
+        "vnetNewOrExisting": {
+            "value": "existing"
+        },
+        "vnetName":{
+            "value": "aks-vnet1"
+        }  
+    }
+}

@@ -1,0 +1,52 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworkName": {
+            "value": "aks-vnet"
+        },
+        "location": {
+            "value": "[resourceGroup().location]"
+        },
+        "storageAccountName": {
+            "value": "[format('store{0}', uniqueString(resourceGroup().id))]"
+        },
+        "vnetAddressPrefix": {
+            "value": "10.0.0.0/16"
+        },
+        "subnetName": {
+            "value": "subnet1"
+        },
+        "subnetPrefix": {
+            "value": "10.0.0.0/24"
+        },
+        "applicationGatewayName": {
+            "value": "applicationGatewayName1"
+        },
+        "applicationGatewaySize": {
+            "value": "Standard_Small"
+        },
+        "applicationGatewayInstanceCount": {
+            "value": "2"
+        },
+        "frontendPort": {
+            "value": "80"
+        },
+        "backendPort": {
+            "value": "80"
+        },
+        "backendIPAddresses": {
+            "value": [
+                {
+                  "IpAddress": "10.0.0.4"
+                },
+                {
+                  "IpAddress": "10.0.0.5"
+                }
+              ]
+        },
+        "cookieBasedAffinity": {
+            "value": "Disabled"
+        }
+    }
+}

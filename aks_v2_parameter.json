@@ -1,0 +1,28 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+         
+        "location": {
+            "value": "eastus2"
+        },
+        "aksClusterName": {
+            "value": "lantern-aks-private"
+        },
+        "aksClusterSkuTier": {
+            "value": "Free"
+        },
+        "nodePoolMaxCount": {
+            "value": 5
+        },
+        "nodePoolMinCount": {
+            "value": 2
+        },
+        "aksClusterKubernetesVersion": {
+            "value": "1.27.7"
+        },
+        "aadProfileTenantId": {
+            "value": "b79e649a-7236-4030-b51c-9eb6ee25a9a3"
+        }   
+    }
+}

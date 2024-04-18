@@ -1,0 +1,156 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "base-name": {
+            "type": "string",
+            "metadata": {
+                "description": "This will be used to derive names for all of your resources"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location in which resources will be created"
+            }
+        },
+        "apim-sku": {
+            "type": "string",
+            "defaultValue": "Developer",
+            "allowedValues": [
+                "Developer", "Premium"
+            ],
+            "metadata": {
+                "description": "The edition of Azure API Management to use. This must be an edition that supports VNET Integration. This selection can have a significant impact on consumption cost and 'Developer' is recommended for non-production use."
+            }
+        },
+        "apim-capacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The number of Azure API Management capacity units to provision. For Developer edition, this must equal 1."
+            }
+        },       
+        "apim-publisher-name": {
+            "type": "string",
+            "defaultValue": "Contoso",
+            "metadata": {
+                "description": "Descriptive name for publisher to be used in the portal"
+            }
+        },
+        "apim-publisher-email": {
+            "type": "string",
+            "defaultValue": "api@contoso.com",
+            "metadata": {
+                "description": "Email adddress associated with publisher"
+            }
+        }
+    },
+    "variables": {
+        "app-insights-name": "[concat(parameters('base-name'), '-ai')]",
+        "vnet-name": "[concat(parameters('base-name'), '-vnet')]",
+        "apim-name": "[concat(parameters('base-name'), '-apim')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ApiManagement/service",
+            "apiVersion": "2020-12-01",
+            "name": "[variables('apim-name')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('apim-sku')]",
+                "capacity": "[parameters('apim-capacity')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnet-name'))]"
+            ],
+            "resources": [
+                {
+                    "type": "gateways",
+                    "apiVersion": "2020-12-01",
+                    "name": "my-gateway",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ApiManagement/service', variables('apim-name'))]"
+                    ],
+                    "properties": {
+                        "locationData": {
+                            "name": "My internal location"
+                        },
+                        "description": "Self hosted gateway bringing API Management to the edge"
+                    }
+                },
+                {
+                    "type": "loggers",
+                    "apiVersion": "2020-12-01",                    
+                    "name": "AppInsightsLogger",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ApiManagement/service', variables('apim-name'))]"
+                    ],
+                    "properties": {
+                        "loggerType": "applicationInsights",
+                        "resourceId": "[resourceId('Microsoft.Insights/components', variables('app-insights-name'))]",
+                        "credentials": {
+                            "instrumentationKey": "[reference(variables('app-insights-name')).InstrumentationKey]"
+                        }
+                    }
+                },
+                {
+                    "type": "diagnostics",
+                    "apiVersion": "2020-12-01",
+                    "name": "applicationinsights",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ApiManagement/service', variables('apim-name'))]",
+                        "[resourceId('Microsoft.ApiManagement/service/loggers', variables('apim-name'), 'AppInsightsLogger')]"
+                    ],
+                    "properties": {
+                        "alwaysLog": "allErrors",
+                        "httpCorrelationProtocol": "Legacy",
+                        "verbosity": "information",
+                        "logClientIp": true,
+                        "loggerId": "[resourceId('Microsoft.ApiManagement/service/loggers/', variables('apim-name'), 'AppInsightsLogger')]",
+                        "sampling": {
+                            "samplingType": "fixed",
+                            "percentage": 100
+                        },
+                        "frontend": {
+                            "request": {
+                                "body": {
+                                    "bytes": 0
+                                }
+                            },
+                            "response": {
+                                "body": {
+                                    "bytes": 0
+                                }
+                            }
+                        },
+                        "backend": {
+                            "request": {
+                                "body": {
+                                    "bytes": 0
+                                }
+                            },
+                            "response": {
+                                "body": {
+                                    "bytes": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "properties": {
+                "publisherName": "[parameters('apim-publisher-name')]",
+                "publisherEmail": "[parameters('apim-publisher-email')]",
+                "virtualNetworkType": "Internal",
+                "virtualNetworkConfiguration": {
+                    "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnet-name'), 'apimSubnet')]"
+                }
+            }
+        }
+    ]
+}

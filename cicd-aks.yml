@@ -1,0 +1,46 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- Kubernites
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: '**/App/Case.API/Dockerfile'
+        containerRegistry: $(dockerRegistryServiceConnection)        
+        tags: |
+          $(tag)
+
+    - task: AzureResourceManagerTemplateDeployment@3
+      inputs:
+        deploymentScope: 'Resource Group'
+        subscriptionId: '573cb139-0000-0000-0000-2b0f793bfdfd'
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: 'my-rg-1'
+        location: 'eastus2'
+        # templateLocation: 'URL of the file'
+        # csmFileLink: 'https://bitbucket.org/icreontech/lantern2-corebackend/src/develop/pipelines/aks/aks.json'
+        # csmParametersFileLink: 'https://bitbucket.org/icreontech/lantern2-corebackend/src/develop/pipelines/aks/aks-parameter.json'
+        templateLocation: 'Linked artifact'
+        csmFile: '$(System.DefaultWorkingDirectory)/pipelines/aks/aks.json'
+        csmParametersFile: '$(System.DefaultWorkingDirectory)/pipelines/aks/aks_parameter.json'
+        deploymentMode: 'Incremental'

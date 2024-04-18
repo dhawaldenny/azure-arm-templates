@@ -1,0 +1,52 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "registryName": {
+            "type": "string",
+            "defaultValue": "opensearch"
+        },
+        "registryLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "zoneRedundancy": {
+            "type": "string",
+            "defaultValue": "Enabled"
+        },
+        "registrySku": {
+            "type": "string",
+            "allowedValues": [
+                "Basic",
+                "Standard",
+                "Premium"
+            ],
+            "defaultValue": "Standard"
+        },
+        "tags": {
+            "type": "object"
+        },
+        "publicNetworkAccess": {
+            "type": "string",
+            "defaultValue": "No"
+        }
+    },
+    "resources": [
+        {
+            "name": "[parameters('registryName')]",
+            "type": "Microsoft.ContainerRegistry/registries",
+            "location": "[parameters('registryLocation')]",
+            "apiVersion": "2021-09-01",
+            "sku": {
+                "name": "[parameters('registrySku')]"
+            },
+            "dependsOn": [],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicNetworkAccess": "[if(equals(parameters('registrySku'), 'Premium'), parameters('publicNetworkAccess'), parameters('publicNetworkAccess'))]",
+                "zoneRedundancy": "[if(equals(parameters('registrySku'), 'Premium'), parameters('zoneRedundancy'), parameters('zoneRedundancy'))]"
+            }
+        }
+    ],
+    "outputs": {}
+}

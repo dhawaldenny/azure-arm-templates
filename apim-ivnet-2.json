@@ -1,0 +1,97 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "base-name": {
+            "type": "string",
+            "metadata": {
+                "description": "This will be used to derive names for all of your resources"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location in which resources will be created"
+            }
+        },
+        "apim-sku": {
+            "type": "string",
+            "defaultValue": "Developer",
+            "allowedValues": [
+                "Developer", "Premium"
+            ],
+            "metadata": {
+                "description": "The edition of Azure API Management to use. This must be an edition that supports VNET Integration. This selection can have a significant impact on consumption cost and 'Developer' is recommended for non-production use."
+            }
+        },
+        "apim-capacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The number of Azure API Management capacity units to provision. For Developer edition, this must equal 1."
+            }
+        },       
+        "apim-publisher-name": {
+            "type": "string",
+            "defaultValue": "Contoso",
+            "metadata": {
+                "description": "Descriptive name for publisher to be used in the portal"
+            }
+        },
+        "apim-publisher-email": {
+            "type": "string",
+            "defaultValue": "api@contoso.com",
+            "metadata": {
+                "description": "Email adddress associated with publisher"
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "aks-vnet",
+            "metadata": {
+                "description": "The name of the existing virtual network."
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": "aks-subnet",
+            "metadata": {
+                "description": "The name of the existing subnet within the virtual network."
+            }
+        },
+        "vnet-subnet-id": {
+            "type": "string",
+            "defaultValue": "[concat(resourceGroup().id, '/providers/Microsoft.Network/virtualNetworks/', parameters('vnetName'), '/subnets/', parameters('subnetName'))]",
+            "metadata": {
+                "description": "description"
+            }
+        }
+    },
+    "variables": {
+        // "vnet-name": "[concat(parameters('base-name'), '-vnet')]",
+        "apim-name": "[concat(parameters('base-name'), '-apim')]" 
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ApiManagement/service",
+            "apiVersion": "2020-12-01",
+            "name": "[variables('apim-name')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('apim-sku')]",
+                "capacity": "[parameters('apim-capacity')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "publisherName": "[parameters('apim-publisher-name')]",
+                "publisherEmail": "[parameters('apim-publisher-email')]",
+                "virtualNetworkConfiguration": {
+                    "subnetResourceId": "[parameters('vnet-subnet-id')]" // Specify the subnet ID of your VNet here
+                }
+            }
+        }
+    ]
+}

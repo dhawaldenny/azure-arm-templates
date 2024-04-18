@@ -1,0 +1,32 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+
+
+        "location": {
+            "value": "[resourceGroup().location]"
+        },
+        "serverName": {
+            "value": "[uniqueString('sql', resourceGroup().id)]"
+            
+        }, 
+        "sqlDBName": {
+            "value": "SampleDB"
+            
+        },
+        "administratorLoginName": {
+            "value": "dhaval"
+        },
+          "administratorLoginPassword": {
+            "value": "iTechOps@2024"
+            
+        },
+          "skuName": {
+            "value": "standard"
+        },
+          "skuTier": {
+            "value": "standard"
+        }
+    }
+}

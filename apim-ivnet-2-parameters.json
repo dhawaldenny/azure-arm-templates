@@ -1,0 +1,31 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+         
+        "base-name": {
+            "value": "aks"
+        },
+        "location": {
+            "value": "[resourceGroup().location]" 
+        },
+        "apim-sku": {
+            "value": "Developer"
+        },
+        "apim-capacity": {
+            "value": 1
+        },
+        "apim-publisher-name": {
+            "value": "Contoso"
+        },
+        "apim-publisher-email": {
+            "value": "api@contoso.com"
+        },
+        "vnetName": {
+            "value": "aks-vnet"
+        },
+        "subnetName": {
+            "value": "aks-subnet"
+        }
+    }
+}

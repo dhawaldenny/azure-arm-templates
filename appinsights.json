@@ -1,0 +1,50 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "defaultValue": "dev-app-insights",
+            "type": "string"
+        },
+        "type": {
+            "type": "string"
+        },
+        "requestSource": {
+            "defaultValue": "Workspace-based",
+            "allowedValues": ["Classic", "Workspace-based"],
+            "type": "string"
+        },
+        "workspaceResourceId": {
+            "type": "string",
+            "defaultValue": "/subscriptions/573cb139-5af5-4924-8206-2b0f793bfdfd/resourceGroups/defaultresourcegroup-eus2/providers/microsoft.operationalinsights/workspaces/defaultworkspace-573cb139-5af5-4924-8206-2b0f793bfdfd-eus2"
+        },
+        "flowType": {
+            "type": "string",
+            "defaultValue": "Redfield",
+            "metadata": {
+                "description": "description"
+            },
+            "allowedValues": ["Redfield", "Bluefield"]
+        }
+    },
+    "resources": [
+        {
+            "name": "[parameters('name')]",
+            "type": "microsoft.insights/components",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "owner": "Icreon",
+                "Project": "Lantern-2.0"
+            },
+            "apiVersion": "2020-02-02-preview",
+            "dependsOn": [],
+            "properties": {
+                "ApplicationId": "[parameters('name')]",
+                "Application_Type": "[parameters('type')]",
+                "Flow_Type": "[parameters('flowType')]",
+                "Request_Source": "[parameters('requestSource')]",
+                "WorkspaceResourceId": "[parameters('workspaceResourceId')]"
+            }
+        }
+    ]
+}

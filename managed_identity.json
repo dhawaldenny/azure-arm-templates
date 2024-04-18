@@ -1,0 +1,28 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "identityName": {
+            "type": "string",
+            "defaultValue": "aks-opensearch-identity",
+            "metadata": {
+                "description": "Provide a Name for your new Managed identity"
+            }
+        },
+        "identityLocation": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('identityName')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2023-01-31",
+            "location": "[parameters('identityLocation')]"
+        }
+    ],
+    "outputs": {}
+}
